@@ -4,6 +4,7 @@
 
 这是基于pytorch实现的该论文模型
 
+<img src="https://github.com/huyingxi/new-LSTM-Cell/blob/master/WechatIMG92.jpg" />
 
 主要在于改变了LSTM内部实现
 
