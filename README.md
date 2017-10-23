@@ -4,10 +4,22 @@
 
 这是基于pytorch实现的该论文模型
 
+
 主要在于改变了LSTM内部实现
 
 
 分为：
 LSTMCell_AddC             ->     encoder部分使用的LSTM
 LSTMCell_AddC_decoder     ->     decoder部分使用的LSTM
+
+
+lstm-lstm-pytorch-evaluate-embed.py是模型部分
+rnn.py是根据需要修改了pytorch的内部实现
+
+
+使用：
+将pytorch下的nn/_function/rnn.py替换即可
+
+
+目前是不支持batch_size的版本
 
