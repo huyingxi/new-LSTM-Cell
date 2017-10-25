@@ -28,5 +28,7 @@ rnn.py是根据需要修改了pytorch的内部实现
 将pytorch下的nn/_function/rnn.py替换即可
 
 
-目前是不支持batch_size的版本
+...-GPU 是支持GPU运行的版本
+
+...-embed 是本地运行版本
 
