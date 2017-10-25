@@ -121,22 +121,6 @@ def load_data(source, dist, max_len, vocab_size):
     return (X, len(X_word_to_ix), X_word_to_ix, X_ix_to_word, y, len(y_word_to_ix), y_word_to_ix, y_ix_to_word, weight)
 
 
-def process_data(word_sentences, max_len, word_to_ix):
-    # Vectorizing each element in each sequence
-    sequences = np.zeros((len(word_sentences), max_len, len(word_to_ix)))
-    for i, sentence in enumerate(word_sentences):
-        for j, word in enumerate(sentence):
-            sequences[i, j, word] = 1.
-    return sequences
-
-
-def prepare_sequence(seq, to_ix):
-    idxs = map(lambda w: to_ix[w], seq)
-    tensor = torch.LongTensor(idxs)
-    tensor = idxs
-    return autograd.Variable(tensor)
-
-
 class LSTMTagger(nn.Module):
     def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size, word_embed_weight):
         super(LSTMTagger, self).__init__()
@@ -153,9 +137,7 @@ class LSTMTagger(nn.Module):
                                                  dropout=0.5, train=True, bidirectional=False, batch_sizes=None,
                                                  dropout_state=None, flat_weight=None, procedure='decoder')
         self.dropout = torch.nn.Dropout(0.3)
-        # self.lstm = nn.LSTM(embedding_dim, hidden_dim)
 
-        # The linear layer that maps from hidden state space to tag space
         self.hidden2tag = nn.Linear(hidden_dim, tagset_size)
 
     def forward(self, sentence):
@@ -168,7 +150,6 @@ class LSTMTagger(nn.Module):
 
         for i in range(2):
             for j in range(2):
-                # nn.init.normal(hidden_encoder[i][j])
                 hidden_encoder[i][j] = hidden_encoder[i][j]
                 hidden_encoder[i][j].data.uniform_()
         weight_encoder = [
@@ -180,7 +161,6 @@ class LSTMTagger(nn.Module):
         for i in range(2):
             for j in range(3):
                 weight_encoder[i][j] = Variable(weight_encoder[i][j], requires_grad=True)
-                # nn.init.normal(weight_encoder[i][j])
                 weight_encoder[i][j].data.uniform_()
         hidden_decoder = [
             [autograd.Variable(torch.Tensor(HIDDEN_DIM))],  # hidden_h
@@ -191,7 +171,6 @@ class LSTMTagger(nn.Module):
         for i in range(3):
             hidden_decoder[i][0] = hidden_decoder[i][0]
             hidden_decoder[i][0].data.uniform_()
-            # hidden_decoder[i][0] = hidden_decoder[i][0]
         weight_decoder = [
             [
                 torch.Tensor(EMBED_DIM, HIDDEN_DIM * 4),
@@ -233,18 +212,9 @@ def predict(X, y, model, loss_function):
     return loss/len(sentence)
 
 
-def run():
-    X, X_vocab_len, X_word_to_ix, X_ix_to_word, y, y_vocab_len, y_word_to_ix, y_ix_to_word, word_embed_weight = load_data(
-        '/Users/test/Desktop/RE/data/train_test/train_x_real.txt', '/Users/test/Desktop/RE/data/train_test/train_y_real.txt', MAX_LEN, VOCAB_SIZE)
-    model = LSTMTagger(EMBED_DIM, HIDDEN_DIM, len(X_word_to_ix), len(y_word_to_ix), word_embed_weight)
-
-    loss_function = nn.NLLLoss()
-    optimizer = optim.RMSprop(model.parameters(), lr=0.001, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0,
-                              centered=False)
-
-
-    f = open('/Users/test/Desktop/RE/data/train_test/test_x_real.txt', 'r')
-    f1 = open('/Users/test/Desktop/RE/data/train_test/test_y_real.txt', 'r')
+def load_test(file1,file2,X_word_to_ix,y_word_to_ix):
+    f = open(file1, 'r')
+    f1 = open(file2, 'r')
     X_test_data = f.read()
     Y_test_data = f1.read()
     f.close()
@@ -276,6 +246,20 @@ def run():
             else:
                 test_y[i][j] = y_word_to_ix['UNK']
 
+    return test_x, test_y
+
+def run():
+    X, X_vocab_len, X_word_to_ix, X_ix_to_word, y, y_vocab_len, y_word_to_ix, y_ix_to_word, word_embed_weight = load_data(
+        '/Users/test/Desktop/RE/data/train_test/train_x_real.txt', '/Users/test/Desktop/RE/data/train_test/train_y_real.txt', MAX_LEN, VOCAB_SIZE)
+    model = LSTMTagger(EMBED_DIM, HIDDEN_DIM, len(X_word_to_ix), len(y_word_to_ix), word_embed_weight)
+
+    loss_function = nn.NLLLoss()
+    optimizer = optim.RMSprop(model.parameters(), lr=0.001, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0,
+                              centered=False)
+
+    test_x, test_y = load_test('/Users/test/Desktop/RE/data/train_test/test_x_real.txt','/Users/test/Desktop/RE/data/train_test/test_y_real.txt',
+                               X_word_to_ix,y_word_to_ix)
+
     count = 0
     for epoch in xrange(NB_EPOCH):  # again, normally you would NOT do 300 epochs, it is toy data
         for i in range(len(X) - BATCH_SIZE):
@@ -284,10 +268,10 @@ def run():
             optimizer.step()
             if count % 1000 == 0:
                 # torch.save(model, '/Users/test/Desktop/RE/model')
-                print("{0} epoch , current training loss {1} : ".format(epoch,loss))
+                print("{0} epoch , training loss {1} : ".format(epoch,loss))
                 loss_test = 0
                 loss_test += predict(test_x[0:BATCH_SIZE], test_y[0:BATCH_SIZE], model, loss_function)
-                print("current test loss {} : ".format(loss_test/BATCH_SIZE))
+                print("test loss {} : ".format(loss_test/BATCH_SIZE))
             count += 1
 
 run()
