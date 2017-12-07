@@ -1,5 +1,5 @@
 # new-LSTM-Cell
-《Joint Extraction of Entities and Relations Based on a Novel Tagging Scheme》-  论文实现 by - pytorch 
+论文实现 by - pytorch 
 
 
 这是基于pytorch实现的该论文模型
